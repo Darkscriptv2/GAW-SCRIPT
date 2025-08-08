@@ -19,8 +19,8 @@ title.TextSize = 48
 title.Parent = background
 
 local subText = Instance.new("TextLabel")
-subText.Size = UDim2.new(1, 0, 0, 50)
-subText.Position = UDim2.new(0, 0, 0.33, 0)
+subText.Size = UDim2.new(1, 0, 0, 40)
+subText.Position = UDim2.new(0, 0, 0.47, -25) -- right above progress bar
 subText.BackgroundTransparency = 1
 subText.Text = "Script Loading Please Wait for a While"
 subText.TextColor3 = Color3.fromRGB(200, 200, 200)
